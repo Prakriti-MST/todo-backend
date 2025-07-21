@@ -2,6 +2,8 @@ import express from "express";
 import mongoose from "mongoose";
 import connectDB from "./utils/connDB.js";
 import todoRouter from "./routes/todo.routes.js";
+import router from "./routes/auth.routes.js";
+import { authMiddleware } from "./middlewares/auth.middleware.js";
 
 const app = express();
 
@@ -11,11 +13,12 @@ app.use(express.json());
 
 connectDB();
 
-app.get("/" , (req,res) => {
+app.get("/" , (req,res) => {    
     res.send("Hello World!");
 })
 
-app.use("/api/todos", todoRouter);
+app.use("/api/auth", router); 
+app.use("/api/todos", authMiddleware, todoRouter);
 
 app.listen(PORT , () => {
     console.log(`Server is running on port ${PORT}`);

@@ -2,15 +2,19 @@ import Todo from "../models/Todo.model.js";
 
 const addTodo = async (req, res) => {
   try {
-    const { title } = req.body;
+    const { title, status = "pending", priority = "mid" } = req.body;
+
     if (!title) {
       return res.status(400).json({ message: "Title is required" });
     }
+
     const newTodo = new Todo({
       title,
-      status: "pending",
-      priority: "mid",
+      status,
+      priority,
+      owner: req.user._id, // 👈 Associate the todo with the logged-in user
     });
+
     await newTodo.save();
     res.status(201).json(newTodo);
   } catch (error) {
@@ -21,7 +25,7 @@ const addTodo = async (req, res) => {
 
 const getTodos = async (req, res) => {
   try {
-    const todos = await Todo.find();
+    const todos = await Todo.find({ owner: req.user._id }); // 🔥 filter by current user
     res.status(200).json(todos);
   } catch (error) {
     console.error("Error fetching todos:", error);

@@ -16,6 +16,11 @@ const TodoSchema = new mongoose.Schema({
     required: true,
     enum: ['high', 'mid', 'low'],
     default: 'mid'
+  },
+  owner : {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
   }
 }, { timestamps: true });
 
