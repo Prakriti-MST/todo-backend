@@ -4,6 +4,8 @@ import connectDB from "./utils/connDB.js";
 import todoRouter from "./routes/todo.routes.js";
 import router from "./routes/auth.routes.js";
 import { authMiddleware } from "./middlewares/auth.middleware.js";
+import dotenv from "dotenv";
+dotenv.config(); 
 
 const app = express();
 

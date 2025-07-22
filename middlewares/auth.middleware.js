@@ -1,36 +1,70 @@
 import jwt from "jsonwebtoken";
-import User from "../models/user.model.js";
+import User from "../models/User.model.js";
+import messages from "../constants/messages.js";
+import { sendResponse } from "../utils/response.js";
+
 export const authMiddleware = async (req, res, next) => {
   try {
+    let token;
+
+    // 1) Try Bearer header
     const authHeader = req.headers.authorization;
-
-    // Check for Bearer token
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res
-        .status(401)
-        .json({ message: "Unauthorized: No token provided" });
+    if (authHeader?.startsWith("Bearer ")) {
+      token = authHeader.split(" ")[1];
+    }
+    // 2) Fallback to cookie
+    if (!token && req.cookies) {
+      token = req.cookies.token;
+    }
+    // 3) Fallback to body
+    if (!token && req.body?.token) {
+      token = req.body.token;
     }
 
-    const token = authHeader.split(" ")[1];
+    if (!token) {
+      // return res.status(401).json({ message: messages.AUTH_NO_TOKEN });
+      return sendResponse(res, {
+        statusCode: 401,
+        success: false,
+        message: messages.AUTH_NO_TOKEN,
+        data: null,
+      });
+    }
 
+    let decoded;
     try {
-      const decoded = jwt.verify(token, process.env.SECRET);
-      const user = await User.findById(decoded.id).select("-password"); // exclude password
-
-      if (!user) {
-        return res
-          .status(401)
-          .json({ message: "Unauthorized: User not found" });
-      }
-
-      req.user = user; // attach user to request
-      next();
-    } catch (error) {
-      console.error("Auth error:", error);
-      return res.status(401).json({ message: "Unauthorized: Invalid token" });
+      decoded = jwt.verify(token, process.env.SECRET);
+    } catch (err) {
+      console.error("JWT verification failed:", err);
+      // return res.status(401).json({ message: messages.AUTH_INVALID_TOKEN });
+      return sendResponse(res, {
+        statusCode: 401,
+        success: false,
+        message: messages.AUTH_INVALID_TOKEN,
+        data: null,
+      });
     }
+
+    const user = await User.findById(decoded.id).select("-password");
+    if (!user) {
+      return sendResponse(res, {
+        statusCode: 401,
+        success: false,
+        message: messages.AUTH_NOT_FOUND,
+        data: null,
+      });
+    }
+
+    req.user = user;
+    next();
   } catch (err) {
     console.error("Error in auth middleware:", err);
-    return res.status(401).json({ message: "Unauthorized" });
+
+    return sendResponse(res, {
+      statusCode: 500,
+      success: false,
+      message: messages.INTERNAL_SERVER_ERROR,
+      data: null,
+    });
   }
 };

@@ -13,7 +13,7 @@ const todoRouter = express.Router();
 todoRouter.get('/', getTodos);
 
 // POST   
-todoRouter.post('/', addTodo);
+todoRouter.post('/', addTodo);0
 
 // PUT    
 todoRouter.put('/:id', updateTodo);

@@ -1,49 +1,94 @@
-
-import User from '../models/user.model.js';
-import generateToken from '../utils/generateToken.js';
-
+import messages from "../constants/messages.js";
+import User from "../models/User.model.js";
+import generateToken from "../utils/generateToken.js";
+import { sendResponse } from "../utils/response.js";
 
 export const signup = async (req, res) => {
   try {
-    const { username, email, password } = req.body;
-    if (!username || !email || !password) {
-      return res.status(400).json({ message: 'All fields are required' });
+    const { name, email, password } = req.body;
+    if (!name || !email || !password) {
+      return sendResponse(res, {
+        statusCode: 400,
+        success: false,
+        message: messages.SIGNUP_MISSING_FIELDS,
+        data: null,
+      });
     }
     const existing = await User.findOne({ email });
     if (existing) {
-      return res.status(409).json({ message: 'Email already taken' });
+      return res.status(409).json({ message: messages.SIGNUP_EMAIL_TAKEN });
     }
-    const user = await User.create({ username, email, password });
-    // console.log('User created:', user);
-
+    const user = await User.create({ name, email, password });
     const token = generateToken(user._id);
-    // console.log('Generated token:', token);
-    res.status(201).json({ token, user: { id: user._id, username: user.username, email: user.email } });
+
+    return sendResponse(res, {
+      statusCode: 201,
+      success: true,
+      message: "User created successfully",
+      data: {
+        token,
+        user: { id: user._id, name: user.name, email: user.email },
+      },
+    });
   } catch (error) {
-    console.error('Signup error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
+    console.error("Signup error:", error);
+
+    return sendResponse(res, {
+      statusCode: 500,
+      success: false,
+      message: messages.INTERNAL_SERVER_ERROR,
+      data: null,
+    });
   }
 };
-
 
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
-      return res.status(400).json({ message: 'Email and password are required' });
+      return sendResponse(res, {
+        statusCode: 400,
+        success: false,
+        message: messages.LOGIN_MISSING_FIELDS,
+        data: null,
+      });
     }
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return sendResponse(res, {
+        statusCode: 404,
+        success: false,
+        message: messages.LOGIN_USER_NOT_FOUND,
+        data: null,
+      });
     }
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+      return sendResponse(res, {
+        statusCode: 401,
+        success: false,
+        message: messages.LOGIN_INVALID_CREDS,
+        data: null,
+      });
     }
     const token = generateToken(user._id);
-    res.status(200).json({ token, user: { id: user._id, username: user.username, email: user.email } });
+
+    return sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: "Login successful",
+      data: {
+        token,
+        user: { id: user._id, name: user.name, email: user.email },
+      },
+    });
   } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
+    console.error("Login error:", error);
+    return sendResponse(res, {
+      statusCode: 500,
+      success: false,
+      message: messages.INTERNAL_SERVER_ERROR,
+      data: null,
+    });
   }
 };

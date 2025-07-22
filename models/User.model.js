@@ -3,14 +3,17 @@ import bcrypt from "bcrypt";
 
 const UserSchema = new mongoose.Schema(
   {
-    username: {
+    name: {
       type: String,
       required: true,
+      trim: true,
     },
     email: {
       type: String,
       required: true,
       unique: true,
+      trim: true,
+      lowercase: true,
       match: /.+\@.+\..+/,
     },
     password: {
@@ -23,7 +26,6 @@ const UserSchema = new mongoose.Schema(
   }
 );
 
-
 UserSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
   try {
@@ -35,10 +37,10 @@ UserSchema.pre("save", async function (next) {
   }
 });
 
-
-UserSchema.methods.comparePassword = async function (candidatePassword) {
-  return await bcrypt.compare(candidatePassword, this.password);
+UserSchema.methods.comparePassword = function (candidatePassword) {
+  return bcrypt.compare(candidatePassword, this.password);
 };
 
-const User = mongoose.model("User", UserSchema);
+const User = mongoose.models.User || mongoose.model("User", UserSchema);              //overwrite model error
+
 export default User;
