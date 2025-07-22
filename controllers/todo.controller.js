@@ -1,37 +1,32 @@
 import Todo from "../models/Todo.model.js";
 import messages from "../constants/messages.js";
 import { sendResponse } from "../utils/response.js";
+import { createTodoSchema } from "../models/Todo.zod.js";
 
 const addTodo = async (req, res) => {
   try {
-    const {
-      title,
-      description = "",
-      status = "pending",
-      priority = "mid",
-    } = req.body;
+    const todoData = {
+      ...req.body,
+      owner: req.user._id.toString(), // Inject owner from auth middleware
+    };
 
-    if (!title) {
+    const parsed = createTodoSchema.safeParse(todoData);
+    // console.log("Parsed Todo Data:", parsed);
+    if (!parsed.success) {
       return sendResponse(res, {
         statusCode: 400,
         success: false,
-        message: messages.TODO_TITLE_REQUIRED,
-        data: null,
+        message: messages.VALIDATION_FAILED,
+        data: parsed.error.flatten(),
       });
     }
 
-    const newTodo = await Todo.create({
-      title,
-      description,
-      status,
-      priority,
-      owner: req.user._id,
-    });
+    const newTodo = await Todo.create(parsed.data);
 
     return sendResponse(res, {
       statusCode: 201,
       success: true,
-      message: "Todo added successfully",
+      message: messages.TODO_ADD_SUCCESS,
       data: newTodo,
     });
   } catch (error) {
@@ -103,12 +98,11 @@ const updateTodo = async (req, res) => {
     return sendResponse(res, {
       statusCode: 200,
       success: true,
-      message: "Todo updated successfully",
+      message: messages.TODO_UPDATE_SUCCESS,
       data: todo,
     });
   } catch (error) {
     console.error("Error updating todo:", error);
-
     return sendResponse(res, {
       statusCode: 500,
       success: false,

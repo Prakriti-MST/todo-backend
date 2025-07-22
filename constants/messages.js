@@ -12,11 +12,16 @@ export default {
   LOGIN_INVALID_CREDS: "Invalid credentials",
 
   // Todo
+
   TODO_TITLE_REQUIRED: "Title is required",
-  TODO_NOT_FOUND: "Todo not found",
-  TODO_DELETE_SUCCESS: "Todo deleted successfully",
-  TODO_NO_UPDATE_FIELDS: "No valid fields provided for update",
+  TODO_ADD_SUCCESS: "Todo added successfully",
   TODO_FETCH_SUCCESS: "Todos fetched successfully",
+  TODO_UPDATE_SUCCESS: "Todo updated successfully",
+  TODO_DELETE_SUCCESS: "Todo deleted successfully",
+  TODO_NO_UPDATE_FIELDS: "No fields provided to update",
+  TODO_NOT_FOUND: "Todo not found",
+  INTERNAL_SERVER_ERROR: "Internal Server Error",
+  VALIDATION_FAILED: "Validation failed",
 
   // Generic
   INTERNAL_SERVER_ERROR: "Internal Server Error",

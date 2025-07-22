@@ -2,22 +2,33 @@ import messages from "../constants/messages.js";
 import User from "../models/User.model.js";
 import generateToken from "../utils/generateToken.js";
 import { sendResponse } from "../utils/response.js";
+import { createUserSchema, loginSchema } from "../models/User.zod.js";
 
 export const signup = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
-    if (!name || !email || !password) {
+    const parsed = createUserSchema.safeParse(req.body);
+
+    if (!parsed.success) {
       return sendResponse(res, {
         statusCode: 400,
         success: false,
-        message: messages.SIGNUP_MISSING_FIELDS,
+        message: "Validation failed",
+        data: parsed.error.flatten(),
+      });
+    }
+
+    const { name, email, password } = parsed.data;
+
+    const existing = await User.findOne({ email });
+    if (existing) {
+      return sendResponse(res, {
+        statusCode: 409,
+        success: false,
+        message: messages.SIGNUP_EMAIL_TAKEN,
         data: null,
       });
     }
-    const existing = await User.findOne({ email });
-    if (existing) {
-      return res.status(409).json({ message: messages.SIGNUP_EMAIL_TAKEN });
-    }
+
     const user = await User.create({ name, email, password });
     const token = generateToken(user._id);
 
@@ -32,7 +43,6 @@ export const signup = async (req, res) => {
     });
   } catch (error) {
     console.error("Signup error:", error);
-
     return sendResponse(res, {
       statusCode: 500,
       success: false,
@@ -44,15 +54,19 @@ export const signup = async (req, res) => {
 
 export const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
-    if (!email || !password) {
+    const parsed = loginSchema.safeParse(req.body);
+
+    if (!parsed.success) {
       return sendResponse(res, {
         statusCode: 400,
         success: false,
-        message: messages.LOGIN_MISSING_FIELDS,
-        data: null,
+        message: "Validation failed",
+        data: parsed.error.flatten(),
       });
     }
+
+    const { email, password } = parsed.data;
+
     const user = await User.findOne({ email });
     if (!user) {
       return sendResponse(res, {
@@ -62,6 +76,7 @@ export const login = async (req, res) => {
         data: null,
       });
     }
+
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
       return sendResponse(res, {
@@ -71,6 +86,7 @@ export const login = async (req, res) => {
         data: null,
       });
     }
+
     const token = generateToken(user._id);
 
     return sendResponse(res, {
