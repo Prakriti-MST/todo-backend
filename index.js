@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import express from "express";
 import mongoose from "mongoose";
+import cors from "cors";
 import connectDB from "./config/connDB.js";
 
 import todoRouter from "./routes/todo.routes.js";
@@ -18,6 +19,7 @@ dotenv.config();
 const PORT = process.env.PORT || 3000;
 
 const app = express();
+app.use(cors());
 app.use(express.json());
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 

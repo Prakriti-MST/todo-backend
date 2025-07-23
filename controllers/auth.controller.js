@@ -35,6 +35,8 @@ export const signup = async (req, res) => {
     const user = await User.create({ name, email, password });
     const token = generateToken(user._id);
 
+    // console.log("User created:", user);
+
     return sendResponse(res, {
       statusCode: 201,
       success: true,
@@ -57,6 +59,7 @@ export const signup = async (req, res) => {
 
 export const login = async (req, res) => {
   try {
+    // console.log("Login request body:", req.body);
     const parsed = loginSchema.safeParse(req.body);
 
     if (!parsed.success) {
@@ -111,3 +114,13 @@ export const login = async (req, res) => {
     });
   }
 };
+
+export const logout = (req, res) => {
+  return sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Logout successful",
+    data: null,
+  });
+};
+export default { signup, login, logout };
