@@ -1,8 +1,11 @@
-import messages from "../constants/messages.js";
+import messages from "../utils/constants/messages.js";
 import User from "../models/User.model.js";
 import generateToken from "../utils/generateToken.js";
 import { sendResponse } from "../utils/response.js";
-import { createUserSchema, loginSchema } from "../models/User.zod.js";
+import {
+  createUserSchema,
+  loginSchema,
+} from "../models/validators/User.zod.js";
 
 export const signup = async (req, res) => {
   try {

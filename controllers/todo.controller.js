@@ -1,7 +1,7 @@
 import Todo from "../models/Todo.model.js";
-import messages from "../constants/messages.js";
+import messages from "../utils/constants/messages.js";
 import { sendResponse } from "../utils/response.js";
-import { createTodoSchema } from "../models/Todo.zod.js";
+import { createTodoSchema } from "../models/validators/Todo.zod.js";
 
 const addTodo = async (req, res) => {
   try {
