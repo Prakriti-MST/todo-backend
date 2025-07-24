@@ -1,6 +1,5 @@
-export function sendResponse(
-  res,
-  { statusCode = 200, success = true, message = "", data = null }
-) {
-  return res.status(statusCode).json({ statusCode, success, message, data });
+export function sendResponse(res, { statusCode, success, message, data }) {
+  return res
+    .status(200)                           
+    .json({ statusCode, success, message, data });
 }

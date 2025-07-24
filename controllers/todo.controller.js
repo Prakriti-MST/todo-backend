@@ -1,22 +1,24 @@
 import Todo from "../models/Todo.model.js";
-import messages from "../utils/constants/messages.js";
+
 import { sendResponse } from "../utils/response.js";
 import { createTodoSchema } from "../models/validators/Todo.zod.js";
+import { StatusCodes } from "../utils/constants/statusCodes/statusCode.js";
+import { COMMON, TODO } from "../utils/constants/messages/index.js";
 
 const addTodo = async (req, res) => {
   try {
     const todoData = {
       ...req.body,
-      owner: req.user._id.toString(), // Inject owner from auth middleware
+      owner: req.user._id.toString(),
     };
 
     const parsed = createTodoSchema.safeParse(todoData);
-    // console.log("Parsed Todo Data:", parsed);
+
     if (!parsed.success) {
       return sendResponse(res, {
-        statusCode: 400,
+        statusCode: StatusCodes.BAD_REQUEST,
         success: false,
-        message: messages.VALIDATION_FAILED,
+        message: COMMON.VALIDATION_FAILED,
         data: parsed.error.flatten(),
       });
     }
@@ -24,18 +26,18 @@ const addTodo = async (req, res) => {
     const newTodo = await Todo.create(parsed.data);
 
     return sendResponse(res, {
-      statusCode: 201,
+      statusCode: StatusCodes.CREATED,
       success: true,
-      message: messages.TODO_ADD_SUCCESS,
+      message: TODO.TODO_ADD_SUCCESS,
       data: newTodo,
     });
   } catch (error) {
-    console.error("Error adding todo:", error);
+    // console.error("Error adding todo:", error);
     return sendResponse(res, {
-      statusCode: 500,
+      statusCode: StatusCodes.INTERNAL_SERVER_ERROR,
       success: false,
-      message: messages.INTERNAL_SERVER_ERROR,
-      data: null,
+      message: TODO.TODO_ADD_FAIL,
+      data: [],
     });
   }
 };
@@ -44,18 +46,18 @@ const getTodos = async (req, res) => {
   try {
     const todos = await Todo.find({ owner: req.user._id });
     return sendResponse(res, {
-      statusCode: 200,
+      statusCode: StatusCodes.OK,
       success: true,
-      message: messages.TODO_FETCH_SUCCESS,
+      message: TODO.TODO_FETCH_SUCCESS,
       data: todos,
     });
   } catch (error) {
-    console.error("Error fetching todos:", error);
+    // console.error("Error fetching todos:", error);
     return sendResponse(res, {
-      statusCode: 500,
+      statusCode: StatusCodes.INTERNAL_SERVER_ERROR,
       success: false,
-      message: messages.INTERNAL_SERVER_ERROR,
-      data: null,
+      message: TODO.TODO_FETCH_FAIL,
+      data: [],
     });
   }
 };
@@ -73,10 +75,10 @@ const updateTodo = async (req, res) => {
 
     if (Object.keys(updates).length === 0) {
       return sendResponse(res, {
-        statusCode: 400,
+        statusCode: StatusCodes.BAD_REQUEST,
         success: false,
-        message: messages.TODO_NO_UPDATE_FIELDS,
-        data: null,
+        message: TODO.TODO_NO_UPDATE_FIELDS,
+        data: [],
       });
     }
 
@@ -88,25 +90,25 @@ const updateTodo = async (req, res) => {
 
     if (!todo) {
       return sendResponse(res, {
-        statusCode: 404,
+        statusCode: StatusCodes.NOT_FOUND,
         success: false,
-        message: messages.TODO_NOT_FOUND,
+        message: TODO.TODO_NOT_FOUND,
         data: null,
       });
     }
 
     return sendResponse(res, {
-      statusCode: 200,
+      statusCode: StatusCodes.OK,
       success: true,
-      message: messages.TODO_UPDATE_SUCCESS,
+      message: TODO.TODO_UPDATE_SUCCESS,
       data: todo,
     });
   } catch (error) {
-    console.error("Error updating todo:", error);
+    // console.error("Error updating todo:", error);
     return sendResponse(res, {
-      statusCode: 500,
+      statusCode: StatusCodes.INTERNAL_SERVER_ERROR,
       success: false,
-      message: messages.INTERNAL_SERVER_ERROR,
+      message: TODO.TODO_UPDATE_FAIL,
       data: null,
     });
   }
@@ -119,25 +121,25 @@ const deleteTodo = async (req, res) => {
 
     if (!todo) {
       return sendResponse(res, {
-        statusCode: 404,
+        statusCode: StatusCodes.NOT_FOUND,
         success: false,
-        message: messages.TODO_NOT_FOUND,
-        data: null,
+        message: TODO.TODO_NOT_FOUND,
+        data: [],
       });
     }
 
     return sendResponse(res, {
-      statusCode: 200,
+      statusCode: StatusCodes.NO_CONTENT,
       success: true,
-      message: messages.TODO_DELETE_SUCCESS,
-      data: null,
+      message: TODO.TODO_DELETE_SUCCESS,
+      data: [],
     });
   } catch (error) {
-    console.error("Error deleting todo:", error);
+    // console.error("Error deleting todo:", error);
     return sendResponse(res, {
-      statusCode: 500,
+      statusCode: StatusCodes.INTERNAL_SERVER_ERROR,
       success: false,
-      message: messages.INTERNAL_SERVER_ERROR,
+      message: TODO.TODO_DELETE_FAIL,
       data: null,
     });
   }

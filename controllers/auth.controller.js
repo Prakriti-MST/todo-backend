@@ -1,4 +1,4 @@
-import messages from "../utils/constants/messages.js";
+
 import User from "../models/User.model.js";
 import generateToken from "../utils/generateToken.js";
 import { sendResponse } from "../utils/response.js";
@@ -6,67 +6,70 @@ import {
   createUserSchema,
   loginSchema,
 } from "../models/validators/User.zod.js";
+import { StatusCodes } from "../utils/constants/statusCodes/statusCode.js";
+import { AUTH, COMMON } from "../utils/constants/messages/index.js";
 
 export const signup = async (req, res) => {
   try {
     const parsed = createUserSchema.safeParse(req.body);
 
     if (!parsed.success) {
-      return sendResponse(res, {
-        statusCode: 400,
-        success: false,
-        message: "Validation failed",
-        data: parsed.error.flatten(),
-      });
-    }
+  return sendResponse(res, {
+    statusCode: StatusCodes.BAD_REQUEST,      
+    success: false,
+    message: COMMON.VALIDATION_FAILED,        
+    data: parsed.error.flatten(),             
+  });
+}
+
 
     const { name, email, password } = parsed.data;
 
     const existing = await User.findOne({ email });
     if (existing) {
       return sendResponse(res, {
-        statusCode: 409,
+        statusCode: StatusCodes.UNPROCESSABLE_CONTENT,
         success: false,
-        message: messages.SIGNUP_EMAIL_TAKEN,
-        data: null,
+        message: AUTH.SIGNUP_EMAIL_TAKEN,
+        data: [],
       });
     }
 
     const user = await User.create({ name, email, password });
     const token = generateToken(user._id);
 
-    // console.log("User created:", user);
+    
 
     return sendResponse(res, {
-      statusCode: 201,
+      statusCode: StatusCodes.CREATED,
       success: true,
-      message: "User created successfully",
+      message: AUTH.SIGNUP_SUCCESS,
       data: {
         token,
         user: { id: user._id, name: user.name, email: user.email },
       },
     });
   } catch (error) {
-    console.error("Signup error:", error);
+    // console.error("Signup error:", error);
     return sendResponse(res, {
-      statusCode: 500,
+      statusCode: StatusCodes.INTERNAL_SERVER_ERROR,
       success: false,
-      message: messages.INTERNAL_SERVER_ERROR,
-      data: null,
+      message: AUTH.SIGNUP_FAIL,
+      data: [],
     });
   }
 };
 
 export const login = async (req, res) => {
   try {
-    // console.log("Login request body:", req.body);
+    
     const parsed = loginSchema.safeParse(req.body);
 
     if (!parsed.success) {
       return sendResponse(res, {
-        statusCode: 400,
+        statusCode: StatusCodes.BAD_REQUEST,
         success: false,
-        message: "Validation failed",
+        message: COMMON.VALIDATION_FAILED,
         data: parsed.error.flatten(),
       });
     }
@@ -76,9 +79,9 @@ export const login = async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) {
       return sendResponse(res, {
-        statusCode: 404,
+        statusCode: StatusCodes.NOT_FOUND,
         success: false,
-        message: messages.LOGIN_USER_NOT_FOUND,
+        message: AUTH.LOGIN_USER_NOT_FOUND,
         data: null,
       });
     }
@@ -86,41 +89,41 @@ export const login = async (req, res) => {
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
       return sendResponse(res, {
-        statusCode: 401,
+        statusCode: StatusCodes.UNAUTHORIZED,
         success: false,
-        message: messages.LOGIN_INVALID_CREDS,
+        message: AUTH.LOGIN_INVALID_CREDS,
         data: null,
       });
     }
 
     const token = generateToken(user._id);
-    console.log("Login successful, user:", user);
+    // console.log("Login successful, user:", user);
 
     return sendResponse(res, {
-      statusCode: 200,
+      statusCode: StatusCodes.OK,
       success: true,
-      message: "Login successful",
+      message: AUTH.SIGNUP_SUCCESS,
       data: {
         token,
         user: { id: user._id, name: user.name, email: user.email },
       },
     });
   } catch (error) {
-    console.error("Login error:", error);
+    // console.error("Login error:", error);
     return sendResponse(res, {
-      statusCode: 500,
+      statusCode: StatusCodes.INTERNAL_SERVER_ERROR,
       success: false,
-      message: messages.INTERNAL_SERVER_ERROR,
-      data: null,
+      message: COMMON.INTERNAL_SERVER_ERROR,
+      data: [],
     });
   }
 };
 
 export const logout = (req, res) => {
   return sendResponse(res, {
-    statusCode: 200,
+    statusCode: StatusCodes.NO_CONTENT,
     success: true,
-    message: "Logout successful",
+    message: AUTH.LOGOUT_SUCCESS,
     data: null,
   });
 };

@@ -1,7 +1,9 @@
 import jwt from "jsonwebtoken";
 import User from "../models/User.model.js";
-import messages from "../utils/constants/messages.js";
+// import messages from "../utils/constants/messages.js";
 import { sendResponse } from "../utils/response.js";
+import { StatusCodes } from "../utils/constants/statusCodes/statusCode.js";
+import { AUTH } from "../utils/constants/messages/index.js";
 
 export const authMiddleware = async (req, res, next) => {
   try {
@@ -24,10 +26,10 @@ export const authMiddleware = async (req, res, next) => {
     if (!token) {
       // return res.status(401).json({ message: messages.AUTH_NO_TOKEN });
       return sendResponse(res, {
-        statusCode: 401,
+        statusCode: StatusCodes.UNAUTHORIZED,
         success: false,
-        message: messages.AUTH_NO_TOKEN,
-        data: null,
+        message: AUTH.AUTH_NO_TOKEN,
+        data: [],
       });
     }
 
@@ -35,35 +37,35 @@ export const authMiddleware = async (req, res, next) => {
     try {
       decoded = jwt.verify(token, process.env.SECRET);
     } catch (err) {
-      console.error("JWT verification failed:", err);
-      // return res.status(401).json({ message: messages.AUTH_INVALID_TOKEN });
+      // console.error("JWT verification failed:", err);
+      
       return sendResponse(res, {
-        statusCode: 401,
+        statusCode: StatusCodes.UNAUTHORIZED,
         success: false,
-        message: messages.AUTH_INVALID_TOKEN,
-        data: null,
+        message: AUTH.AUTH_INVALID_TOKEN,
+        data: [],
       });
     }
 
     const user = await User.findById(decoded.id).select("-password");
     if (!user) {
       return sendResponse(res, {
-        statusCode: 401,
+        statusCode: StatusCodes.NOT_FOUND,
         success: false,
-        message: messages.AUTH_NOT_FOUND,
-        data: null,
+        message: AUTH.LOGIN_USER_NOT_FOUND,
+        data: [],
       });
     }
 
     req.user = user;
     next();
   } catch (err) {
-    console.error("Error in auth middleware:", err);
+    // console.error("Error in auth middleware:", err);
 
     return sendResponse(res, {
-      statusCode: 500,
+      statusCode: StatusCodes.INTERNAL_SERVER_ERROR,
       success: false,
-      message: messages.INTERNAL_SERVER_ERROR,
+      message: AUTH.AUTH_ERROR,
       data: null,
     });
   }
