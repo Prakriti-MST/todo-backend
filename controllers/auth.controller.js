@@ -94,6 +94,7 @@ export const login = async (req, res) => {
     }
 
     const token = generateToken(user._id);
+    console.log("Login successful, user:", user);
 
     return sendResponse(res, {
       statusCode: 200,
