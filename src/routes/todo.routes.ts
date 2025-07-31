@@ -1,10 +1,11 @@
 import express from "express";
+
 import {
-  getTodos,
   addTodo,
+  getTodos,
   updateTodo,
   deleteTodo,
-} from "../controllers/todo.controller.js";
+} from "../controllers/todos/index";
 
 const todoRouter = express.Router();
 

@@ -1,6 +1,16 @@
-import mongoose from "mongoose";
+import mongoose, { Document, Schema, Model, Types } from "mongoose";
 
-const TodoSchema = new mongoose.Schema(
+export interface ITodo extends Document {
+  title: string;
+  description?: string;
+  status: "completed" | "pending";
+  priority: "high" | "mid" | "low";
+  owner: Types.ObjectId;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const TodoSchema: Schema<ITodo> = new mongoose.Schema(
   {
     title: {
       type: String,
@@ -27,13 +37,17 @@ const TodoSchema = new mongoose.Schema(
       default: "mid",
     },
     owner: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+  }
 );
 
-const Todo = mongoose.model("Todo", TodoSchema);
+export const Todo: Model<ITodo> =
+  mongoose.models.Todo || mongoose.model<ITodo>("Todo", TodoSchema);
+
 export default Todo;
